@@ -1,6 +1,7 @@
 import torch
 import visdom
 from dataset import Generator
+from model import HourglassModel
 
 
 
@@ -11,8 +12,17 @@ def train():
     # loss_window = vis.line(X=torch.zeros((1,)).cpu(),  Y=torch.zeros((1,)).cpu(),
                            # opts=dict(xlabel='epoch', ylabel='Loss', title='Training Loss', legend=['Loss']))
 
+    # Get dataset
     print("Get Dataset...")
-    train_loader = Generator()
+    train_set = Generator()
+
+    model = HourglassModel()
+
+    
+
+
+
+
     
 
 
