@@ -2,3 +2,4 @@ torch
 torchvision
 visdom
 cudatoolkit=10.1
+opencv
