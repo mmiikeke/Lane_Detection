@@ -54,8 +54,8 @@ class Generator(object):
 
         # load test set
         self.test_data = []
-        self.test_path=Path(opt.data_root).joinpath('test_set/test_tasks_0627.json')
-        with open(self.test_path) as f:
+        self.test_path=Path(opt.data_root).joinpath('test_set')
+        with open(Path(self.test_path).joinpath('test_tasks_0627.json')) as f:
             while True:
                 line = f.readline()
                 if not line:
@@ -78,7 +78,7 @@ class Generator(object):
             self.Rotate()
             self.Gaussian()
             self.Change_intensity()
-            self.Random_shadow()
+            self.Shadow()
 
             yield self.inputs/255.0, self.target_lanes, self.target_h, self.test_image/255.0
 
@@ -101,7 +101,7 @@ class Generator(object):
                 data = random.sample(self.train_data_two, 1)[0]
         
              # train set image
-            temp_image = cv2.imread(Path(self.train_path).joinpath(data['raw_file']))
+            temp_image = cv2.imread(str(Path(self.train_path).joinpath(data['raw_file'])))
             ratio_w = self.x_size*1.0/temp_image.shape[1]
             ratio_h = self.y_size*1.0/temp_image.shape[0]
             temp_image = cv2.resize(temp_image, (self.x_size,self.y_size))
@@ -120,7 +120,9 @@ class Generator(object):
 
         #test set image
         test_index = random.randrange(0, self.size_test-1)
-        test_image = cv2.imread(Path(self.test_path).joinpath(self.test_data[test_index]['raw_file']))
+        print(self.test_path)
+        test_image = cv2.imread(str(Path(self.test_path).joinpath(self.test_data[test_index]['raw_file'])))
+        # print(str(Path(self.test_path).joinpath(self.test_data[test_index]['raw_file'])))
         test_image = cv2.resize(test_image, (self.x_size,self.y_size))
 
         return np.array(inputs), target_lanes, target_h, np.rollaxis(test_image, axis=2, start=0)
@@ -183,15 +185,6 @@ class Generator(object):
 
             self.target_lanes[i] = x
             self.target_h[i] = y
-
-
-    def Rotate_Points(origin, point, angle):
-        ox, oy = origin
-        px, py = point
-
-        qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-        qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-        return qx, qy
 
 
     # Rotate
@@ -271,34 +264,42 @@ class Generator(object):
 
 
         # Generate random shadow in random region
-        def Random_shadow(self):
-            shadow_ration = 0.6
-            indices = self.Random_indices(shadow_ratio)
-            for i in indices:
-                test_image = copy.deepcopy(self.inputs[i])
-                test_image =  np.rollaxis(test_image, axis=2, start=0)
-                test_image =  np.rollaxis(test_image, axis=2, start=0)
+    def Shadow(self, min_alpha=0.5, max_alpha=0.75):
+        shadow_ratio = 0.6
+        indices = self.Random_indices(shadow_ratio)
+        for i in indices:
+            test_image = copy.deepcopy(self.inputs[i])
+            test_image =  np.rollaxis(test_image, axis=2, start=0)
+            test_image =  np.rollaxis(test_image, axis=2, start=0)
 
-                top_x, bottom_x = np.random.randint(0, 512, 2)
-                coin = np.random.randint(2)
-                rows, cols, _ = test_image.shape
-                shadow_img = test_image.copy()
-                if coin == 0:
-                    rand = np.random.randint(2)
-                    vertices = np.array([[(50, 65), (45, 0), (145, 0), (150, 65)]], dtype=np.int32)
-                    if rand == 0:
-                        vertices = np.array([[top_x, 0], [0, 0], [0, rows], [bottom_x, rows]], dtype=np.int32)
-                    elif rand == 1:
-                        vertices = np.array([[top_x, 0], [cols, 0], [cols, rows], [bottom_x, rows]], dtype=np.int32)
-                    mask = test_image.copy()
-                    channel_count = test_image.shape[2]  # i.e. 3 or 4 depending on your image
-                    ignore_mask_color = (0,) * channel_count
-                    cv2.fillPoly(mask, [vertices], ignore_mask_color)
-                    rand_alpha = np.random.uniform(min_alpha, max_alpha)
-                    cv2.addWeighted(mask, rand_alpha, test_image, 1 - rand_alpha, 0., shadow_img)
-                    shadow_img =  np.rollaxis(shadow_img, axis=2, start=0)
-                    self.inputs[i] = shadow_img
+            top_x, bottom_x = np.random.randint(0, 512, 2)
+            coin = np.random.randint(2)
+            rows, cols, _ = test_image.shape
+            shadow_img = test_image.copy()
+            if coin == 0:
+                rand = np.random.randint(2)
+                vertices = np.array([[(50, 65), (45, 0), (145, 0), (150, 65)]], dtype=np.int32)
+                if rand == 0:
+                    vertices = np.array([[top_x, 0], [0, 0], [0, rows], [bottom_x, rows]], dtype=np.int32)
+                elif rand == 1:
+                    vertices = np.array([[top_x, 0], [cols, 0], [cols, rows], [bottom_x, rows]], dtype=np.int32)
+                mask = test_image.copy()
+                channel_count = test_image.shape[2]  # i.e. 3 or 4 depending on your image
+                ignore_mask_color = (0,) * channel_count
+                cv2.fillPoly(mask, [vertices], ignore_mask_color)
+                rand_alpha = np.random.uniform(min_alpha, max_alpha)
+                cv2.addWeighted(mask, rand_alpha, test_image, 1 - rand_alpha, 0., shadow_img)
+                shadow_img =  np.rollaxis(shadow_img, axis=2, start=0)
+                self.inputs[i] = shadow_img
 
+
+def Rotate_Points(origin, point, angle):
+    ox, oy = origin
+    px, py = point
+
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return qx, qy
 
 
 

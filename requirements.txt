@@ -1,4 +1,4 @@
-torch
+pytorch
 torchvision
 visdom
 cudatoolkit=10.1

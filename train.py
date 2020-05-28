@@ -2,6 +2,9 @@ import torch
 import visdom
 from dataset import Generator
 from model import HourglassModel
+from options import opt
+from utils.train_utils import make_ground_truth_point
+
 
 
 
@@ -17,6 +20,22 @@ def train():
     train_set = Generator()
 
     model = HourglassModel()
+    optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
+    step = 0
+
+    print("Training loop...")
+    for epoch in range(opt.epochs):
+        print(f'Epoch: {epoch+1}/{opt.epochs}')
+        print('-'*len(f'Epoch: {epoch+1}/{opt.epochs}'))
+
+        model.train()
+        for inputs, target_lanes, target_h, test_image in train_set.Generate():
+            real_batch_size=len(target_lanes)
+            ground_truth_point, ground_truth_binary = make_ground_truth_point(target_lanes, target_h)
+            break
+
+        
+
 
     
 
