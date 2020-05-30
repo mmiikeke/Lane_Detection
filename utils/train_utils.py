@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 from options import opt
-print(sys.path)
+import copy
 
 
 def sort_batch_along_y(target_lanes, target_h):
@@ -91,7 +91,7 @@ def make_ground_truth_instance(target_lanes, target_h):
 
         for i in range(opt.grid_y*opt.grid_x): #make gt
             temp = temp[temp>-1]
-            gt_one = deepcopy(temp)
+            gt_one = copy.deepcopy(temp)
             if temp[i]>0:
                 gt_one[temp==temp[i]] = 1   #same instance
                 if temp[i] == 0:

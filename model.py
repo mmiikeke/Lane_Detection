@@ -225,4 +225,3 @@ class Output(nn.Module):
         outputs = self.conv(inputs)
         return outputs
 
-

@@ -1,9 +1,12 @@
 import torch
 import visdom
-from dataset import Generator
+from dataset import LaneDataset
 from model import HourglassModel
 from options import opt
 from utils.train_utils import make_ground_truth_point, make_ground_truth_instance
+from torch.autograd import Variable
+from loss import SGPNLoss
+from torch.utils.data import DataLoader
 
 
 
@@ -17,9 +20,12 @@ def train():
 
     # Get dataset
     print("Get Dataset...")
-    train_set = Generator()
+    train_set = LaneDataset(opt.mode)
+    train_loader=DataLoader(dataset=train_set,batch_size=opt.batch_size,shuffle=True,num_workers=1)
 
     model = HourglassModel()
+    model = model.cuda(opt.cuda_devices)
+    criterion = SGPNLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
     step = 0
 
@@ -29,12 +35,50 @@ def train():
         print('-'*len(f'Epoch: {epoch+1}/{opt.epochs}'))
 
         model.train()
-        for inputs, target_lanes, target_h, test_image in train_set.Generate():
+
+        point_loss = 0
+
+        for inputs in train_set:
+            print(inputs)
+            
+
+        """for inputs, target_lanes, target_h, test_image in train_set.Generate():
             real_batch_size=len(target_lanes)
-            ground_truth_point, ground_truth_binary = make_ground_truth_point(target_lanes, target_h)
+            print(real_batch_size)
+
+            # generate ground truth
+            ground_truth_point, ground_binary = make_ground_truth_point(target_lanes, target_h)
             ground_truth_instance = make_ground_truth_instance(target_lanes,target_h)
-            break
-        break
+            
+            # convert numpy array to torch tensor
+            ground_truth_point = torch.from_numpy(ground_truth_point).float()
+            ground_truth_point = Variable(ground_truth_point).cuda(opt.cuda_devices)
+            ground_truth_point.requires_grad=False
+
+            ground_binary = torch.LongTensor(ground_binary.tolist()).cuda(opt.cuda_devices)
+            ground_binary.requires_grad=False
+
+            ground_truth_instance = torch.from_numpy(ground_truth_instance).float()
+            ground_truth_instance = Variable(ground_truth_instance).cuda(opt.cuda_devices)
+            ground_truth_instance.requires_grad=False
+
+            inputs = torch.from_numpy(inputs).float() 
+            inputs = Variable(inputs.cuda(opt.cuda_devices))
+
+            result = model(inputs)
+
+            point_loss += criterion(result, ground_truth_point, ground_truth_instance, real_batch_size, epoch)
+
+        optimizer.zero_grad()
+        point_loss.backward()
+        optimizer.step()
+
+        training_loss = point_loss / real_batch_size
+
+        print('training_loss: {training_loss}')"""
+
+
+
 
         
 
