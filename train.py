@@ -3,7 +3,7 @@ import visdom
 from dataset import Generator
 from model import HourglassModel
 from options import opt
-from utils.train_utils import make_ground_truth_point
+from utils.train_utils import make_ground_truth_point, make_ground_truth_instance
 
 
 
@@ -32,7 +32,9 @@ def train():
         for inputs, target_lanes, target_h, test_image in train_set.Generate():
             real_batch_size=len(target_lanes)
             ground_truth_point, ground_truth_binary = make_ground_truth_point(target_lanes, target_h)
+            ground_truth_instance = make_ground_truth_instance(target_lanes,target_h)
             break
+        break
 
         
 

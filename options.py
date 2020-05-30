@@ -6,7 +6,7 @@ ROOTPATH = "/home/joycenerd/Lane_Detection"
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--data_root', type=str, default=Path(ROOTPATH).joinpath('Data'))
-parser.add_argument('--cuda_devices', type=int, default=0, help='gpu device')
+parser.add_argument('--cuda_devices', type=int, default=1, help='gpu device')
 parser.add_argument('--epochs', type=int, default=1000, help='number of epochs')
 parser.add_argument('--batch_size', type=int, default=8, help='batch size')
 parser.add_argument('--lr', type=float, default=0.0001, help='learning rate')
