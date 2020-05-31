@@ -1,6 +1,6 @@
 import torch
 import visdom
-from dataset import LaneDataset
+from dataset import Generator
 from model import HourglassModel
 from options import opt
 from utils.train_utils import make_ground_truth_point, make_ground_truth_instance
@@ -20,11 +20,11 @@ def train():
 
     # Get dataset
     print("Get Dataset...")
-    train_set = LaneDataset(opt.mode)
-    train_loader=DataLoader(dataset=train_set,batch_size=opt.batch_size,shuffle=True,num_workers=1)
+    train_loader = Generator()
 
     model = HourglassModel()
     model = model.cuda(opt.cuda_devices)
+
     criterion = SGPNLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
     step = 0
@@ -36,13 +36,13 @@ def train():
 
         model.train()
 
-        point_loss = 0
+        point_loss = 0.0 
 
         for inputs in train_set:
             print(inputs)
             
 
-        """for inputs, target_lanes, target_h, test_image in train_set.Generate():
+        for inputs, target_lanes, target_h, test_image in train_loader.Generate():
             real_batch_size=len(target_lanes)
             print(real_batch_size)
 
@@ -65,17 +65,19 @@ def train():
             inputs = torch.from_numpy(inputs).float() 
             inputs = Variable(inputs.cuda(opt.cuda_devices))
 
+            optimizer.zero_grad()
+
             result = model(inputs)
+            loss = criterion(result, ground_truth_point, ground_truth_instance, real_batch_size, epoch)
 
-            point_loss += criterion(result, ground_truth_point, ground_truth_instance, real_batch_size, epoch)
+            point_loss.backward()
+            optimizer.step()
 
-        optimizer.zero_grad()
-        point_loss.backward()
-        optimizer.step()
+            point_loss += loss.item() * inputs.size(0)
 
         training_loss = point_loss / real_batch_size
 
-        print('training_loss: {training_loss}')"""
+        print('training_loss: {training_loss}')
 
 
 
