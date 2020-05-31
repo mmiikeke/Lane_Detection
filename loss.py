@@ -84,7 +84,7 @@ class SGPNLoss(nn.Module):
             # print(instance_loss)
 
             lane_detection_loss = self.constant_lane_loss*lane_loss + self.constant_instance_loss*instance_loss
-            if (epoch+1) >= 800:
+            if (epoch+1) >= 400:
                 self.constant_nonexist = 1.5
                 self.constant_lane_loss = 1.5
             

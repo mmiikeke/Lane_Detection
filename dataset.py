@@ -127,6 +127,17 @@ class Generator(object):
 
         return np.array(inputs), target_lanes, target_h, np.rollaxis(test_image, axis=2, start=0)
 
+    
+    def Generate_Test(self): 
+        for i in range(self.size_test):
+            test_image = cv2.imread(str(Path(self.test_path).joinpath(self.test_data[i]['raw_file'])))
+            #print(self.test_data[i]['raw_file'])
+            ratio_w = self.x_size*1.0/test_image.shape[1]
+            ratio_h = self.y_size*1.0/test_image.shape[0]
+            test_image = cv2.resize(test_image, (self.x_size,self.y_size))
+
+            yield np.rollaxis(test_image, axis=2, start=0)/255.0, np.array(self.test_data[i]['h_samples']), ratio_w, ratio_h, i
+
 
     # Generate random unique indices according to ratio
     def Random_indices(self, ratio):
