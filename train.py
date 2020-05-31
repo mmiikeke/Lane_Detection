@@ -13,6 +13,7 @@ import copy
 import numpy as np
 import cv2
 from pathlib import Path
+from visual import plt_loss
 
 
 def train():
@@ -37,6 +38,18 @@ def train():
     best_model_params = copy.deepcopy(model.state_dict())
     loss_list=[]
     record=open('record.txt','w')
+
+    feature_size =  4
+    K1 =  1.0
+    K2 = 2.0
+    constant_exist = 1.0
+    constant_nonexist = 1.0
+    constant_offset =  1.0
+    constant_alpha =  1.0
+    constant_beta = 1.0
+    constant_lane_loss = 1.0
+    constant_instance_loss = 1.0
+    current_epoch = 0
 
     print("Training loop...")
     for epoch in range(opt.epochs):
@@ -72,24 +85,102 @@ def train():
             inputs = torch.from_numpy(inputs).float() 
             inputs = Variable(inputs.cuda(opt.cuda_devices))
 
-            optimizer.zero_grad()
-
             result = model(inputs)
-            loss = criterion(result, ground_truth_point, ground_truth_instance, real_batch_size, epoch)
 
-            loss.backward()
+            lane_detection_loss = 0.0
+            for (confidance, offset, feature) in result:
+                #compute loss for point prediction
+                offset_loss = 0
+                exist_condidence_loss = 0
+                nonexist_confidence_loss = 0
+
+                #exist confidance loss
+                confidance_gt = ground_truth_point[:, 0, :, :]
+                confidance_gt = confidance_gt.view(real_batch_size, 1, opt.grid_y, opt.grid_x)
+                exist_condidence_loss = torch.sum(    (confidance_gt[confidance_gt==1] - confidance[confidance_gt==1])**2      )/torch.sum(confidance_gt==1)
+
+                #non exist confidance loss
+                nonexist_confidence_loss = torch.sum(    (confidance_gt[confidance_gt==0] - confidance[confidance_gt==0])**2      )/torch.sum(confidance_gt==0)
+
+                #offset loss 
+                offset_x_gt = ground_truth_point[:, 1:2, :, :]
+                offset_y_gt = ground_truth_point[:, 2:3, :, :]
+
+                predict_x = offset[:, 0:1, :, :]
+                predict_y = offset[:, 1:2, :, :]
+
+                x_offset_loss = torch.sum( (offset_x_gt[confidance_gt==1] - predict_x[confidance_gt==1])**2 )/torch.sum(confidance_gt==1)
+                y_offset_loss = torch.sum( (offset_y_gt[confidance_gt==1] - predict_y[confidance_gt==1])**2 )/torch.sum(confidance_gt==1)
+
+                offset_loss = (x_offset_loss + y_offset_loss)/2
+
+                #compute loss for similarity
+                sisc_loss = 0
+                disc_loss = 0
+
+                feature_map = feature.view(real_batch_size, feature_size, 1, opt.grid_y*opt.grid_x)
+                feature_map = feature_map.expand(real_batch_size, feature_size, opt.grid_y*opt.grid_x, opt.grid_y*opt.grid_x).detach()
+
+                point_feature = feature.view(real_batch_size, feature_size, opt.grid_y*opt.grid_x,1)
+                point_feature = point_feature.expand(real_batch_size, feature_size, opt.grid_y*opt.grid_x, opt.grid_y*opt.grid_x)#.detach()
+
+                distance_map = (feature_map-point_feature)**2 
+                distance_map = torch.norm( distance_map, dim=1 ).view(real_batch_size, 1, opt.grid_y*opt.grid_x, opt.grid_y*opt.grid_x)
+
+                # same instance
+                sisc_loss = torch.sum(distance_map[ground_truth_instance==1])/torch.sum(ground_truth_instance==1)
+
+                # different instance, same class
+                disc_loss = K1-distance_map[ground_truth_instance==2] #self.p.K1/distance_map[ground_truth_instance==2] + (self.p.K1-distance_map[ground_truth_instance==2])
+                disc_loss[disc_loss<0] = 0
+                disc_loss = torch.sum(disc_loss)/torch.sum(ground_truth_instance==2)
+
+                print("seg loss################################################################")
+                print(sisc_loss)
+                print(disc_loss)
+
+                print("point loss")
+                print(exist_condidence_loss)
+                print(nonexist_confidence_loss)
+                print(offset_loss)
+
+                print("lane loss")
+                lane_loss = constant_exist*exist_condidence_loss + constant_nonexist*nonexist_confidence_loss + constant_offset*offset_loss
+                print(lane_loss)
+
+                print("instance loss")
+                instance_loss = constant_alpha*sisc_loss + constant_beta*disc_loss
+                print(instance_loss)
+
+                lane_detection_loss = lane_detection_loss + constant_lane_loss*lane_loss + constant_instance_loss*instance_loss
+
+            optimizer.zero_grad()
+            lane_detection_loss.backward()
             optimizer.step()
 
-            point_loss += loss.item() * inputs.size(0)
+            del confidance, offset, feature
+            del ground_truth_point, ground_binary, ground_truth_instance
+            del feature_map, point_feature, distance_map
+            del exist_condidence_loss, nonexist_confidence_loss, offset_loss, sisc_loss, disc_loss, lane_loss, instance_loss
+            
+            if epoch>0 and epoch%20==0 and current_epoch != epoch:
+                urrent_epoch = epoch
+                if epoch>0 and (epoch == 1000):
+                    constant_lane_loss += 0.5
+                constant_nonexist += 0.5
+                l_rate /= 2.0
+                optimizer = torch.optim.Adam(model.parameters(), lr=l_rate, weight_decay=opt.weight_decay)
+            
+            point_loss += lane_detection_loss.item() * inputs.size(0)
 
-            if step%100 ==0:
-                testing(model, test_image, step, loss)
+            if step%1000 == 0:
+                testing(model, test_image, step, point_loss)
 
             step += 1
 
         training_loss = point_loss / (real_batch_size*iteration)
         loss_list.append(training_loss)
-        print(f'training_loss: {training_loss:.4f}')
+        print(f'training_loss: {training_loss:.4f}\n')
 
         if training_loss < best_loss:
             best_loss = training_loss
@@ -136,7 +227,10 @@ def train():
                     test_result_path = Path(opt.save_path).joinpath('json_test_result').joinpath("test_result_"+str(epoch)+"_"+str(th)+".json")
                     make_file.write(LaneEval.bench_one_submit(str(test_result_path), "test_label.json"))
                     make_file.write("\n")
-
+    
+    loss_list = np.round(loss_list,4)
+    plt_loss(loss_list)
+    
 
 def testing(model, test_image, step, loss):
     model.eval()

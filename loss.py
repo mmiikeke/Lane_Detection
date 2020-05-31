@@ -19,6 +19,7 @@ class SGPNLoss(nn.Module):
         self.current_epoch = 0
 
     def forward(self, result, ground_truth_point, ground_truth_instance, real_batch_size, epoch):
+        lane_detection_loss = 0
         for (confidance, offset, feature) in result:
             #compute loss for point prediction
             offset_loss = 0
@@ -66,7 +67,7 @@ class SGPNLoss(nn.Module):
             disc_loss[disc_loss<0] = 0
             disc_loss = torch.sum(disc_loss)/torch.sum(ground_truth_instance==2)
 
-            """print("seg loss################################################################")
+            print("seg loss################################################################")
             print(sisc_loss)
             print(disc_loss)
 
@@ -75,20 +76,26 @@ class SGPNLoss(nn.Module):
             print(nonexist_confidence_loss)
             print(offset_loss)
 
-            print("lane loss")"""
+            print("lane loss")
             lane_loss = self.constant_exist*exist_condidence_loss + self.constant_nonexist*nonexist_confidence_loss + self.constant_offset*offset_loss
-            # print(lane_loss)
+            print(lane_loss)
 
-            # print("instance loss")
+            print("instance loss")
             instance_loss = self.constant_alpha*sisc_loss + self.constant_beta*disc_loss
-            # print(instance_loss)
+            print(instance_loss)
 
-            lane_detection_loss = self.constant_lane_loss*lane_loss + self.constant_instance_loss*instance_loss
-            if (epoch+1) >= 400:
-                self.constant_nonexist = 1.5
-                self.constant_lane_loss = 1.5
-            
-            if epoch>0 and (epoch+1)%5 == 0:
-                self.constant_alpha *= 2
+            lane_detection_loss += self.constant_lane_loss*lane_loss + self.constant_instance_loss*instance_loss
 
-            return lane_detection_loss
+        del confidance, offset, feature
+        del ground_truth_point, ground_truth_instance
+        del feature_map, point_feature, distance_map
+        del exist_condidence_loss, nonexist_confidence_loss, offset_loss, sisc_loss, disc_loss, lane_loss, instance_loss
+
+        if (epoch+1) >= 400:
+            self.constant_nonexist = 1.5
+            self.constant_lane_loss = 1.5
+        
+        if epoch>0 and (epoch+1)%5 == 0:
+            self.constant_alpha *= 2
+
+        return lane_detection_loss
