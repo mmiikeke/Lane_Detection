@@ -31,7 +31,8 @@ def train():
     model = model.cuda(opt.cuda_devices)
 
     criterion = SGPNLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
+    l_rate = opt.lr
+    optimizer = torch.optim.Adam(model.parameters(), lr=l_rate, weight_decay=opt.weight_decay)
     
     step = 0
     best_loss = float('inf')
@@ -163,8 +164,8 @@ def train():
             del feature_map, point_feature, distance_map
             del exist_condidence_loss, nonexist_confidence_loss, offset_loss, sisc_loss, disc_loss, lane_loss, instance_loss
             
-            if epoch>0 and epoch%20==0 and current_epoch != epoch:
-                urrent_epoch = epoch
+            if epoch>0 and epoch%50==0 and current_epoch != epoch:
+                current_epoch = epoch
                 if epoch>0 and (epoch == 1000):
                     constant_lane_loss += 0.5
                 constant_nonexist += 0.5
@@ -188,10 +189,10 @@ def train():
 
         if (epoch+1)%50 == 0:
             model.load_state_dict(best_model_params)
-            weight_path=Path(opt.save_path).joinpath(f'model-{epoch+1}epoch-{best_loss:.02f}-best_train_loss.pth')
+            weight_path=Path(opt.save_path).joinpath('weights').joinpath(f'model-{epoch+1}epoch-{best_loss:.02f}-best_train_loss.pth')
             torch.save(model,str(weight_path))
             record.write(f'{epoch+1}\n')
-            record.write(f'Best training loss: {best_train_loss:.4f}\n\n')
+            record.write(f'Best training loss: {best_loss:.4f}\n\n')
 
         if epoch > 0 and epoch%10 == 0:
             print("evaluaton...")
