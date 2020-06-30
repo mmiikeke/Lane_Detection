@@ -9,8 +9,8 @@ import copy
 from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points
 
 
-CLIPPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/Data/demo_vid_clip/1492626047222176976_0"
-SAVEPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/results/clip_result"
+CLIPPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/Data/demo_vid_clip/1494452383592719171"
+SAVEPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/results/test_clip_result"
 
 def gen_video():
     frame_array = []
@@ -22,7 +22,7 @@ def gen_video():
         size = (width,height)
         frame_array.append(img)
     
-    out =  cv2.VideoWriter('demo_video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15.0,size)
+    out =  cv2.VideoWriter('test_demo_video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15.0,size)
 
     for i in range(len(frame_array)):
         out.write(frame_array[i])
