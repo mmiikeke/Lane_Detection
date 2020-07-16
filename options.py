@@ -6,7 +6,7 @@ ROOTPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection"
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--data_root', type=str, default=Path(ROOTPATH).joinpath('Data'))
-parser.add_argument('--cuda_devices', type=int, default=1, help='gpu device')
+parser.add_argument('--cuda_devices', type=int, default=0, help='gpu device')
 parser.add_argument('--epochs', type=int, default=500, help='number of epochs')
 parser.add_argument('--batch_size', type=int, default=8, help='batch size')
 parser.add_argument('--mode', type=str, default='train', help='[train, test]')

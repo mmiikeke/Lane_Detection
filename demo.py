@@ -9,24 +9,29 @@ import copy
 from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points
 
 
-CLIPPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/Data/demo_vid_clip/1494452383592719171"
-SAVEPATH = "/mnt/md0/new-home/joycenerd/Lane_Detection/results/test_clip_result"
+CLIPPATH = "data/video/frame_input"
+CLIPSAVEPATH = "data/video/frame_output"
+VIDSAVEPATH = "data/video/video.avi"
+fps = 30
 
 def gen_video():
     frame_array = []
+    files = [f for f in os.listdir(CLIPSAVEPATH) if os.path.isfile(os.path.join(CLIPSAVEPATH, f))]
+    files.sort()
     
-    for i in range(1,21):
-        filename = Path(SAVEPATH).joinpath(str(i)+'.jpg')
-        img  = cv2.imread(str(filename))
+    for i in range(len(files)):
+        filename=os.path.join(CLIPSAVEPATH, files[i])
+        img = cv2.imread(filename)
         height, width, layers = img.shape
         size = (width,height)
+        #inserting the frames into an image array
         frame_array.append(img)
-    
-    out =  cv2.VideoWriter('test_demo_video.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15.0,size)
+
+    out = cv2.VideoWriter(VIDSAVEPATH,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
     for i in range(len(frame_array)):
+        # writing to a image array
         out.write(frame_array[i])
-    
     out.release()
 
 
@@ -88,7 +93,7 @@ def main():
         test_image = cv2.resize(test_image, (512,256)) 
         test_image = np.rollaxis(test_image, axis=2, start=0)/255.0
         _, _, result_image = gen_test(np.array([test_image]))
-        image_path = Path(SAVEPATH).joinpath(image)
+        image_path = Path(CLIPSAVEPATH).joinpath(image)
         cv2.imwrite(str(image_path), result_image[0])
         print(image + " complete")
     gen_video()
@@ -96,6 +101,5 @@ def main():
 
 
 if __name__=='__main__':
-    model = torch.load("/mnt/md0/new-home/joycenerd/Lane_Detection/Data/model-100epoch-1.17-best_train_loss.pth")
-    model = model.cuda(opt.cuda_devices)
+    model = torch.load("model/model.pth", map_location='cuda:'+str(opt.cuda_devices))
     main()
