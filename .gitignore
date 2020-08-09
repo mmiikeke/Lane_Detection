@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # directory
-/[Dd]ata/
-/[Mm]odel/
+[Dd]ata/
+[Mm]odel/
