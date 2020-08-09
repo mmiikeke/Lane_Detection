@@ -20,9 +20,10 @@
 from collections import OrderedDict
 
 from PySide2 import QtCore
-from PySide2.QtCore import Qt, QFile, QPropertyAnimation
+from PySide2.QtCore import Qt, QFile, QPropertyAnimation, QParallelAnimationGroup
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QFont, QIcon, QPixmap
+from PySide2.QtWidgets import QVBoxLayout, QGridLayout, QWidget
 
 from user_interface.page_widget import page1, page2
 
@@ -48,10 +49,6 @@ class MainWindow(object):
         self._pages = OrderedDict()
         self.setup_ui()
 
-        #self._window.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        #self._window.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        #self.ui.frame_label_top_btns.mouseDoubleClickEvent = dobleClickMaximizeRestore
-
     @property
     def window(self):
         """The main window object"""
@@ -68,34 +65,33 @@ class MainWindow(object):
         self._pages['page1'] = page1()
         self._pages['page2'] = page2()
 
+        # Add to frame
+        g_layout = QGridLayout()
+        g_layout.setSpacing(0)
+        g_layout.setMargin(0)
+
         for index, name in enumerate(self._pages):
             print('pages {} : {} page'.format(index, name))
-            self._window.stackedWidget.addWidget(self._pages[name].widget)
+            g_layout.addWidget(self._pages[name].widget, 0, 0, 1, 1)
+
+        self._window.frame_content.setLayout(g_layout)
+
+        self._pages['page2'].widget.stackUnder(self._pages['page1'].widget)
+        self._pages['page2'].widget.setDisabled(True)
+
+        # Add to stacked Widget
+        #for index, name in enumerate(self._pages):
+        #    print('pages {} : {} page'.format(index, name))
+        #    self._window.stackedWidget.addWidget(self._pages[name].widget)
         
-        self._window.stackedWidget.setCurrentIndex(0)
+        #self._window.stackedWidget.setCurrentIndex(0)
 
         self.set_buttons()
 
-        #self._window.stackedWidget.setLayout(g_layout)
-        #self._window.frame_content.addWidget(self._pages[name].widget)
-
-        #self._window.widget_stack.setCurrentIndex(0)
-
-        # Build up signal / slot
-        #self._option_panel.currentItemChanged.connect(self.set_page)
-
     def set_buttons(self):
         """Setup buttons"""
-        self._pages['page1'].widget.btn_start.clicked.connect(lambda: self.next_page(1))
+        self._pages['page1'].widget.btn_start.clicked.connect(lambda: self.next_page(self._pages['page1'].widget, self._pages['page2'].widget))
 
-        #self._window.btn_page1_start.clicked.connect(self.page1_start)
-        #self._window.import_btn.setIcon(QIcon('basic_widget\\media\\import.svg'))
-        #self._window.btn_toggle.clicked.connect(lambda: self.toggleMenu(250, True))
-
-        #self._window.btn_menu_1.clicked.connect(lambda: self.set_page(0))
-        #self._window.btn_menu_2.clicked.connect(lambda: self.set_page(1))
-        #self._window.btn_menu_3.clicked.connect(lambda: self.set_page(2))
-        
         #p = QPixmap(IMAGE);
         #self._window.label_page1_bg.setPixmap(p)
         #self._window.label_page1_bg.setMask(p.mask());
@@ -106,7 +102,41 @@ class MainWindow(object):
         #self._window.label_page1_bg.setPixmap(p.scaled(1500,1200,QtCore.Qt.KeepAspectRatio));
 
     @QtCore.Slot()
-    def next_page(self, page):
+    def next_page(self, a, b):
+        a.setDisabled(True)
+        a.stackUnder(b)
+        b.setDisabled(False)
+
+        print(a.geometry())
+        #print(a.parentWidget().layout())
+
+        # ANIMATION
+        self.anim_a = QPropertyAnimation(a, b"geometry")
+        self.anim_a.setDuration(2000)
+        self.anim_a.setStartValue(a.geometry())
+        self.anim_a.setEndValue(a.geometry().translated(-a.geometry().width() * 1.5, 0))
+        self.anim_a.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
+        #self.anim_a.start()
+        
+        print(b.geometry())
+        self.anim_b = QPropertyAnimation(b, b"geometry")
+        self.anim_b.setDuration(2200)
+        self.anim_b.setKeyValueAt(0, a.geometry().translated(a.geometry().width() * 1.1, 0))
+        self.anim_b.setKeyValueAt(0.2, a.geometry().translated(a.geometry().width() * 1.1, 0))
+        self.anim_b.setKeyValueAt(1, a.geometry())
+        #self.anim_b.setStartValue(QtCore.QRect(1000, 0, 1000, 435))
+        #self.anim_b.setEndValue(QtCore.QRect(0, 0, 1000, 435))
+        self.anim_b.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
+        #anim_b.start()
+
+        self.group = QParallelAnimationGroup()
+        self.group.addAnimation(self.anim_a)
+        self.group.addAnimation(self.anim_b)
+        self.group.start()      
+
+    """
+    @QtCore.Slot()
+    def next_page_stacked(self, a, b):
         
         current_widget = self._window.stackedWidget.currentWidget()
         print(current_widget.geometry())
@@ -120,48 +150,21 @@ class MainWindow(object):
         self.animation.start()
 
         QtCore.QTimer.singleShot(2000, lambda: self.set_page(1))
+    """
 
+    """
     @QtCore.Slot()
-    def set_page(self, page):
-        """Slot, switch page of stack widget"""
+    def set_page_stacked(self, page):
         self._window.stackedWidget.setCurrentIndex(page)
 
-                # ANIMATION
+        # ANIMATION
         self.animation = QPropertyAnimation(self._window.stackedWidget.currentWidget(), b"geometry")
         self.animation.setDuration(2000)
         self.animation.setStartValue(QtCore.QRect(1000, 0, 1000, 435))
         self.animation.setEndValue(QtCore.QRect(0, 0, 1000, 435))
         self.animation.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
         self.animation.start()
-
-    @QtCore.Slot()
-    def toggleMenu(self, maxWidth, enable):
-        print('start')
-        if enable:
-
-            # GET WIDTH
-            width = self._window.frame_left_menu.width()
-            print(f'width = {width}')
-            maxExtend = maxWidth
-            standard = 70
-
-            # SET MAX WIDTH
-            if width == 70:
-                widthExtended = maxExtend
-            else:
-                widthExtended = standard
-
-            # ANIMATION
-            self.animation = QPropertyAnimation(self._window.frame_left_menu, b"minimumWidth")
-            self.animation.setDuration(400)
-            self.animation.setStartValue(width)
-            self.animation.setEndValue(widthExtended)
-            self.animation.setEasingCurve(QtCore.QEasingCurve.InOutQuart)
-            self.animation.start()
-    
-    @QtCore.Slot(str)
-    def say_hello(self, msg):
-        print('Hello ' + msg)
+    """
 
     @QtCore.Slot()
     def exit(self):
