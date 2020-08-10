@@ -16,7 +16,6 @@
 
 """The item widget page
 """
-
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2.QtCore import Qt, QFile, QObject, QPropertyAnimation
@@ -79,8 +78,6 @@ class page2(QObject):
         self._widget.progressBar.hide()
 
         self.set_buttons()
-
-        print
 
     def set_buttons(self):
         """Setup buttons"""

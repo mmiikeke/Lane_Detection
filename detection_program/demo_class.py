@@ -1,7 +1,6 @@
 from pathlib import Path
-import os
-import cv2
-import torch
+import os, cv2, torch
+import threading
 from detection_program.options import opt
 import numpy as np
 from torch.autograd import Variable
@@ -28,6 +27,8 @@ class Lane_Detection(QtCore.QObject):
         self.widget = widget
     
     def run(self):
+        
+        t = threading.currentThread()
 
         # Video to clips
         if self.is_inputvideo:
@@ -36,7 +37,7 @@ class Lane_Detection(QtCore.QObject):
             #self.update_progressbar.emit(60) #Succeed
             #self.widget.progressBar.setValue(60) #Failed
             i = 0
-            while(vid.isOpened()):
+            while(vid.isOpened() and getattr(t, "do_run", True)):
                 self.widget.label_info.setText(f'Detect image...\t{i}\n')
                 self.update_progressbar.emit(i*100/length)
                 ret, frame = vid.read()

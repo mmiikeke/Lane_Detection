@@ -149,9 +149,9 @@ class MainWindow(object):
         demo.update_progressbar.connect(self.update_progressbar)
         #demo.run()
         widget.progressBar.show()
-        t = threading.Thread(target = demo.run)
-
-        t.start()
+        self.thread = threading.Thread(target = demo.run)
+        self.thread.do_run = True
+        self.thread.start()
 
     @QtCore.Slot(str)
     def update_progressbar(self, value):

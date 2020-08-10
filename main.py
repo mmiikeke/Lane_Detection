@@ -18,17 +18,23 @@
 import os, sys
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), 'detection_program'))
 
-from PySide2.QtWidgets import QApplication
-from PySide2 import QtCore
+from PySide2 import QtWidgets
 from user_interface.main_window import MainWindow
 
-if '__main__' == __name__:
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+class MyWidget(QtWidgets.QWidget):
+    def closeEvent(self, event):
+        result = QtWidgets.QMessageBox.question(self, "Close Windoe", "Are you sure you want to exit the application?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if(result == QtWidgets.QMessageBox.Yes):
+            sub.thread.do_run = False
+            print('Close')
+            event.accept()
+        else:
+            event.ignore()
 
-
-    app = QApplication(sys.argv)
-    mainwindow = MainWindow()
-    mainwindow.window.show()
-
-    ret = app.exec_()
-    sys.exit(ret)
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    parent = MyWidget()
+    sub = MainWindow()
+    sub.window.setParent(parent)
+    parent.show()
+    sys.exit(app.exec_())
