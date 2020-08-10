@@ -25,7 +25,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QFont, QIcon, QPixmap
 from PySide2.QtWidgets import QVBoxLayout, QGridLayout, QWidget
 
-from user_interface.page_widget import page1, page2
+from user_interface.page_widget import page1, page2, page3
 from detection_program.demo_class import Lane_Detection
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
@@ -34,9 +34,11 @@ FORM = 'user_interface/form/ui_main.ui'
 
 IMAGE = 'user_interface/media/bkg.png'
 
-class MainWindow(object):
+class MainWindow(QtCore.QObject):
 
     def __init__(self, parent=None):
+
+        super(MainWindow, self).__init__(parent)
         """Main window, holding all user interface including.
 
         Args:
@@ -65,6 +67,7 @@ class MainWindow(object):
 
         self._pages['page1'] = page1()
         self._pages['page2'] = page2()
+        self._pages['page3'] = page3()
 
         # Add to frame
         g_layout = QGridLayout()

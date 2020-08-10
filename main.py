@@ -30,11 +30,20 @@ class MyWidget(QtWidgets.QWidget):
             event.accept()
         else:
             event.ignore()
+    
+    def set_child(self, child):
+        v_layout = QtWidgets.QVBoxLayout()
+        v_layout.setSpacing(0)
+        v_layout.setMargin(0)
+        v_layout.addWidget(child)
+        self.setLayout(v_layout)
+        child.setParent(self)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     parent = MyWidget()
-    sub = MainWindow()
-    sub.window.setParent(parent)
+    sub = MainWindow(parent)
+    parent.set_child(sub.window)
+
     parent.show()
     sys.exit(app.exec_())
