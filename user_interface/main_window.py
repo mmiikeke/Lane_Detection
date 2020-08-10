@@ -16,7 +16,7 @@
 
 """Mainwindow of the user interface, host and control the operation.
 """
-
+import threading
 from collections import OrderedDict
 
 from PySide2 import QtCore
@@ -26,6 +26,7 @@ from PySide2.QtGui import QFont, QIcon, QPixmap
 from PySide2.QtWidgets import QVBoxLayout, QGridLayout, QWidget
 
 from user_interface.page_widget import page1, page2
+from detection_program.demo_class import Lane_Detection
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
 
@@ -137,15 +138,24 @@ class MainWindow(object):
     
     @QtCore.Slot()
     def detect(self, widget):
-        input_location = widget.lineEdit_input.text()
-        output_location = widget.lineEdit_output.text()
+        input_path = widget.lineEdit_input.text()
+        output_path = widget.lineEdit_output.text()
         is_input_video = widget.set_video.isChecked()
         is_output_video = widget.output_video.isChecked()
         is_output_clips = widget.output_clips.isChecked()
-        print(f'input:{input_location}\noutput:{output_location}\nis input video:{is_input_video}\nis output video:{is_output_video}\nis output clips:{is_output_clips}')
+        print(f'input:{input_path}\noutput:{output_path}\nis input video:{is_input_video}\nis output video:{is_output_video}\nis output clips:{is_output_clips}')
 
-        
+        demo = Lane_Detection(input_path, output_path, is_input_video, is_output_video, is_output_clips, widget)
+        demo.update_progressbar.connect(self.update_progressbar)
+        #demo.run()
+        widget.progressBar.show()
+        t = threading.Thread(target = demo.run)
 
+        t.start()
+
+    @QtCore.Slot(str)
+    def update_progressbar(self, value):
+        self._pages['page2'].widget.progressBar.setValue(value)
     """
     @QtCore.Slot()
     def next_page_stacked(self, a, b):

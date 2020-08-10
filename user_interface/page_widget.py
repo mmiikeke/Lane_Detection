@@ -16,6 +16,7 @@
 
 """The item widget page
 """
+
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2.QtCore import Qt, QFile, QObject, QPropertyAnimation
@@ -79,6 +80,8 @@ class page2(QObject):
 
         self.set_buttons()
 
+        print
+
     def set_buttons(self):
         """Setup buttons"""
         self._widget.input_button.clicked.connect(self.select_input)
@@ -87,7 +90,7 @@ class page2(QObject):
     @QtCore.Slot()
     def select_input(self):
         if self._widget.set_video.isChecked():
-            file = str(QtWidgets.QFileDialog.getOpenFileName(None, "Select Video", "./", "MP4 File (*.mp4)")[0])
+            file = str(QtWidgets.QFileDialog.getOpenFileName(None, "Select Video", "./", "Video File (*.mp4 *.avi)")[0])
         else:
             file = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory"))
 

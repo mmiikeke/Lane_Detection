@@ -1,11 +1,12 @@
 import cv2
 from pathlib import Path
  
-SAVEPATH="data/video/frame"
+SAVEPATH="D:/mike/github/Lane_Detection/data/video/frame"
 # Opens the Video file
-cap= cv2.VideoCapture('data/video/vid.mp4')
+cap= cv2.VideoCapture('D:/mike/github/Lane_Detection/data/video/video_1.avi')
 i=0
 while(cap.isOpened()):
+    print(i)
     ret, frame = cap.read()
     if ret == False:
         break

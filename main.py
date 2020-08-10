@@ -14,13 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
+# Add system path
+import os, sys
+sys.path.append(os.path.join(os.path.abspath(os.getcwd()), 'detection_program'))
 
 from PySide2.QtWidgets import QApplication
-
+from PySide2 import QtCore
 from user_interface.main_window import MainWindow
 
 if '__main__' == __name__:
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+
+
     app = QApplication(sys.argv)
     mainwindow = MainWindow()
     mainwindow.window.show()
