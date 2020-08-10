@@ -23,6 +23,7 @@ class Lane_Detection(QtCore.QObject):
         self.is_outputclips = is_outputclips
         self.model = torch.load("detection_program/model/model.pth", map_location='cuda:'+str(opt.cuda_devices))
         self.clips = list()
+        self.fps = 30
 
         self.widget = widget
     
@@ -38,33 +39,37 @@ class Lane_Detection(QtCore.QObject):
             #self.widget.progressBar.setValue(60) #Failed
             i = 0
             while(vid.isOpened() and getattr(t, "do_run", True)):
-                self.widget.label_info.setText(f'Detect image...\t{i}\n')
+                self.widget.label_info.setText(f'Detect lane...\t{i}\n')
                 self.update_progressbar.emit(i*100/length)
                 ret, frame = vid.read()
                 if ret == False:
                     break
                 self.detect(frame, str(i).zfill(5)+'.jpg')
                 i+=1
-                if i > 30:
-                    break
  
             vid.release()
             cv2.destroyAllWindows()
         
         # Read clips
-        """
         if not self.is_inputvideo:
-            for image in os.listdir(self.input_path):
-                test_image = cv2.imread(str(Path(self.input_path).joinpath(image)))
-                test_image = cv2.resize(test_image, (512,256)) 
-                test_image = np.rollaxis(test_image, axis=2, start=0)/255.0
-                _, _, result_image = gen_test(np.array([test_image]))
-                image_path = Path(self.input_path).joinpath(image)
-                cv2.imwrite(str(image_path), result_image[0])
-                print(image + " complete")
-            gen_video()
+            images = os.listdir(self.input_path)
+            length = len(images)
+
+            i = 0
+            for path in images:
+                if not getattr(t, "do_run", True):
+                    break
+
+                frame = cv2.imread(str(Path(self.input_path).joinpath(path)))
+                self.widget.label_info.setText(f'Detect lane...\t{path}\n')
+                self.update_progressbar.emit(i*100/length)
+                self.detect(frame, path)
+                i+=1
+        
+        # Generate video
+        if self.is_outputvideo:
+            self.gen_video()
             print("generate video complete")
-        """
 
     def detect(self, image, name):
         image = cv2.resize(image, (512,256)) 
@@ -76,7 +81,7 @@ class Lane_Detection(QtCore.QObject):
             cv2.imwrite(str(image_path), result_image[0])
         
         if self.is_outputvideo:
-            self.clips.append((image, name))
+            self.clips.append(result_image[0])
 
     def gen_test(self, test_images, thresh = 0.81):
         test_images =  torch.from_numpy(test_images).float()
@@ -128,3 +133,14 @@ class Lane_Detection(QtCore.QObject):
             out_images.append(result_image)
 
         return out_x, out_y,  out_images
+    
+    def gen_video(self):
+        height, width, layers = self.clips[0].shape
+        size = (width,height)
+
+        out = cv2.VideoWriter(os.path.join(self.output_path, 'video.avi'),cv2.VideoWriter_fourcc(*'DIVX'), self.fps, size)
+
+        for clip in self.clips:
+            # writing to a image array
+            out.write(clip)
+        out.release()

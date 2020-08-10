@@ -26,7 +26,7 @@ class MyWidget(QtWidgets.QWidget):
         result = QtWidgets.QMessageBox.question(self, "Close Windoe", "Are you sure you want to exit the application?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
         if(result == QtWidgets.QMessageBox.Yes):
             sub.thread.do_run = False
-            print('Close')
+            sub.thread.join()
             event.accept()
         else:
             event.ignore()
