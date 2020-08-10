@@ -17,10 +17,11 @@
 """The item widget page
 """
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from PySide2.QtCore import Qt, QFile, QObject, QPropertyAnimation
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QFont, QIcon
-from PySide2.QtWidgets import QFileDialog
+
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
 
@@ -74,6 +75,8 @@ class page2(QObject):
         self._widget = loader.load(file)
         file.close()
 
+        self._widget.progressBar.hide()
+
         self.set_buttons()
 
     def set_buttons(self):
@@ -84,14 +87,14 @@ class page2(QObject):
     @QtCore.Slot()
     def select_input(self):
         if self._widget.set_video.isChecked():
-            file = str(QFileDialog.getOpenFileName(None, "Select Video", "./", "MP4 File (*.mp4)")[0])
+            file = str(QtWidgets.QFileDialog.getOpenFileName(None, "Select Video", "./", "MP4 File (*.mp4)")[0])
         else:
-            file = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
+            file = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory"))
 
         self._widget.lineEdit_input.setText(file)
     
     @QtCore.Slot()
     def select_output(self):
-        file = str(QFileDialog.getExistingDirectory(None, "Select Directory"))
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Directory"))
 
         self._widget.lineEdit_output.setText(file)

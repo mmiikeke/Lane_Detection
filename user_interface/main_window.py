@@ -91,6 +91,7 @@ class MainWindow(object):
     def set_buttons(self):
         """Setup buttons"""
         self._pages['page1'].widget.btn_start.clicked.connect(lambda: self.next_page(self._pages['page1'].widget, self._pages['page2'].widget))
+        self._pages['page2'].widget.btn_detect.clicked.connect(lambda: self.detect(self._pages['page2'].widget))
 
         #p = QPixmap(IMAGE);
         #self._window.label_page1_bg.setPixmap(p)
@@ -132,7 +133,18 @@ class MainWindow(object):
         self.group = QParallelAnimationGroup()
         self.group.addAnimation(self.anim_a)
         self.group.addAnimation(self.anim_b)
-        self.group.start()      
+        self.group.start()
+    
+    @QtCore.Slot()
+    def detect(self, widget):
+        input_location = widget.lineEdit_input.text()
+        output_location = widget.lineEdit_output.text()
+        is_input_video = widget.set_video.isChecked()
+        is_output_video = widget.output_video.isChecked()
+        is_output_clips = widget.output_clips.isChecked()
+        print(f'input:{input_location}\noutput:{output_location}\nis input video:{is_input_video}\nis output video:{is_output_video}\nis output clips:{is_output_clips}')
+
+        
 
     """
     @QtCore.Slot()
