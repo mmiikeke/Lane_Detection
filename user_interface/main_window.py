@@ -16,7 +16,7 @@
 
 """Mainwindow of the user interface, host and control the operation.
 """
-import threading
+import os, threading
 from collections import OrderedDict
 
 from PySide2 import QtCore
@@ -84,9 +84,11 @@ class MainWindow(QtCore.QObject):
         #self._pages['page2'].widget.setGeometry(QtCore.QRect(1920, 0, 1000, 435))
         self._pages['page2'].widget.stackUnder(self._pages['page1'].widget)
         self._pages['page2'].widget.setDisabled(True)
+        self._pages['page2'].widget.hide()
         #self._pages['page4'].widget.setGeometry(QtCore.QRect(1920, 0, 1000, 435))
-        #self._pages['page4'].widget.stackUnder(self._pages['page2'].widget)
-        #self._pages['page4'].widget.setDisabled(True)
+        self._pages['page3'].widget.stackUnder(self._pages['page2'].widget)
+        self._pages['page3'].widget.setDisabled(True)
+        self._pages['page3'].widget.hide()
 
         # Add to stacked Widget
         #for index, name in enumerate(self._pages):
@@ -101,6 +103,7 @@ class MainWindow(QtCore.QObject):
         """Setup buttons"""
         self._pages['page1'].widget.btn_start.clicked.connect(lambda: self.next_page(self._pages['page1'].widget, self._pages['page2'].widget))
         self._pages['page2'].widget.btn_detect.clicked.connect(lambda: self.detect(self._pages['page2'].widget))
+        self._pages['page3'].widget.btn_home.clicked.connect(lambda: self.next_page(self._pages['page3'].widget, self._pages['page1'].widget))
 
         #p = QPixmap(IMAGE);
         #self._window.label_page1_bg.setPixmap(p)
@@ -114,8 +117,8 @@ class MainWindow(QtCore.QObject):
     @QtCore.Slot()
     def next_page(self, a, b):
         a.setDisabled(True)
-        a.stackUnder(b)
         b.setGeometry(a.geometry().translated(a.geometry().width() * 1.1, 0))
+        b.show()
 
         print(a.geometry())
         #print(a.parentWidget().layout())
@@ -149,19 +152,21 @@ class MainWindow(QtCore.QObject):
     @QtCore.Slot()
     def next_page_callback(self, a, b):
         b.setDisabled(False)
+        a.stackUnder(b)
         a.hide()
     
     @QtCore.Slot()
     def detect(self, widget):
-        input_path = widget.lineEdit_input.text()
-        output_path = widget.lineEdit_output.text()
+        self.input_path = widget.lineEdit_input.text()
+        self.output_path = widget.lineEdit_output.text()
         is_input_video = widget.set_video.isChecked()
         is_output_video = widget.output_video.isChecked()
         is_output_clips = widget.output_clips.isChecked()
-        print(f'input:{input_path}\noutput:{output_path}\nis input video:{is_input_video}\nis output video:{is_output_video}\nis output clips:{is_output_clips}')
+        print(f'input:{self.input_path}\noutput:{self.output_path}\nis input video:{is_input_video}\nis output video:{is_output_video}\nis output clips:{is_output_clips}')
 
-        demo = Lane_Detection(input_path, output_path, is_input_video, is_output_video, is_output_clips, widget)
+        demo = Lane_Detection(self.input_path, self.output_path, is_input_video, is_output_video, is_output_clips, widget)
         demo.update_progressbar.connect(self.update_progressbar)
+        demo.detect_callback.connect(self.detect_callback)
         #demo.run()
         widget.progressBar.show()
         self.thread = threading.Thread(target = demo.run)
@@ -169,8 +174,11 @@ class MainWindow(QtCore.QObject):
         self.thread.start()
 
     @QtCore.Slot()
-    def detect_callback(self):
-        self.next_page(self._pages['page2'].widget, self._pages['page4'].widget)
+    def detect_callback(self, subpaths):
+        self.subpaths = subpaths
+        self._pages['page3'].widget.show()
+        self._pages['page3'].setup_grid(os.path.join(self.output_path, 'clips'), self.subpaths)
+        self.next_page(self._pages['page2'].widget, self._pages['page3'].widget)
 
     @QtCore.Slot(str)
     def update_progressbar(self, value):

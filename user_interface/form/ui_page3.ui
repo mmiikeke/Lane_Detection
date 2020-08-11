@@ -97,8 +97,8 @@ QScrollBar:horizontal {
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-49</y>
-              <width>995</width>
+              <y>0</y>
+              <width>992</width>
               <height>600</height>
              </rect>
             </property>
@@ -184,7 +184,7 @@ QScrollBar:horizontal {
           <number>0</number>
          </property>
          <item>
-          <widget class="QPushButton" name="btn_start">
+          <widget class="QPushButton" name="btn_home">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -208,7 +208,7 @@ QPushButton:hover {
 }</string>
            </property>
            <property name="text">
-            <string>Start1</string>
+            <string>Home</string>
            </property>
           </widget>
          </item>

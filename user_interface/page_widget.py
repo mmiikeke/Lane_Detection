@@ -127,16 +127,15 @@ class page3(QObject):
         file.close()
 
         self.set_buttons()
-        self.setup_grid()
+        #self.setup_grid()
 
     def set_buttons(self):
         """Setup buttons"""
 
-    def setup_grid(self):
+    def setup_grid(self, p_path, s_path):
 
         # Read images
-        paths = os.listdir(TEMP)
-        length = len(paths)
+        length = len(s_path)
 
         g_layout = QtWidgets.QGridLayout(self._widget)
         g_layout.setSpacing(10)
@@ -145,19 +144,19 @@ class page3(QObject):
         total_height = 0
 
         #Set grid content
-        for num, path in enumerate(paths):
+        for num, path in enumerate(s_path):
             label = Label(self._widget)
-            label.setStyleSheet("QLabel { background-color : red; }")
+            #label.setStyleSheet("QLabel { background-color : red; }")
             g_layout.addWidget(label, int(num / 2), num % 2, 1, 1)
 
-            pixmap = QtGui.QPixmap(os.path.join(TEMP, path))
+            pixmap = QtGui.QPixmap(os.path.join(p_path, path))
             #scaled = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
             label.setPixmap(pixmap, QtCore.QSize(900, 236))
-            print(f'size = {self._widget.size()}')
+            #print(f'size = {self._widget.size()}')
             #sp = label.sizePolicy()
             #sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Maximum)
             #label.setSizePolicy(sp)
-            #label.setToolTip('row{},Col{}'.format(num, 0))
+            label.setToolTip(f'image: s_path')
             g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
             total_height += (236/2+10)
 

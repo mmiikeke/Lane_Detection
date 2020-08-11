@@ -253,7 +253,7 @@ QLineEdit:focus {
 }</string>
                    </property>
                    <property name="placeholderText">
-                    <string>Ex: C:\Users\user\Documents\Input</string>
+                    <string>Ex: C:/Users/user/Documents/Input</string>
                    </property>
                   </widget>
                  </item>
@@ -481,7 +481,7 @@ QLineEdit:focus {
 }</string>
                    </property>
                    <property name="placeholderText">
-                    <string>Ex: C:\Users\user\Documents\output</string>
+                    <string>Ex: C:/Users/user/Documents/output</string>
                    </property>
                   </widget>
                  </item>

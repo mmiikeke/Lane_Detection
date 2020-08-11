@@ -12,18 +12,27 @@ from PySide2 import QtCore
 class Lane_Detection(QtCore.QObject):
 
     update_progressbar = Signal(float)
+    detect_callback = Signal(list)
 
     def __init__(self, input_path, output_path, is_inputvideo, is_outputvideo, is_outputclips, widget):
         super().__init__()
 
         self.input_path = input_path
-        self.output_path = output_path
+        self.output_clips_path = os.path.join(output_path, 'clips')
+        self.output_video_path = os.path.join(output_path, 'video')
         self.is_inputvideo = is_inputvideo
         self.is_outputvideo = is_outputvideo
         self.is_outputclips = is_outputclips
         self.model = torch.load("detection_program/model/model.pth", map_location='cuda:'+str(opt.cuda_devices))
         self.clips = list()
+        self.subpaths = list()
         self.fps = 30
+
+        if not os.path.isdir(self.output_clips_path):
+            os.makedirs(self.output_clips_path)
+        
+        if not os.path.isdir(self.output_video_path):
+            os.makedirs(self.output_video_path)
 
         self.widget = widget
     
@@ -70,15 +79,17 @@ class Lane_Detection(QtCore.QObject):
         if self.is_outputvideo:
             self.gen_video()
             print("generate video complete")
+        
+        self.detect_callback.emit(self.subpaths)
 
     def detect(self, image, name):
         image = cv2.resize(image, (512,256)) 
         image = np.rollaxis(image, axis=2, start=0)/255.0
         _, _, result_image = self.gen_test(np.array([image]))
 
-        if self.is_outputclips:
-            image_path = Path(self.output_path).joinpath(name)
-            cv2.imwrite(str(image_path), result_image[0])
+        image_path = os.path.join(self.output_clips_path, name)
+        cv2.imwrite(str(image_path), result_image[0])
+        self.subpaths.append(name)
         
         if self.is_outputvideo:
             self.clips.append(result_image[0])
@@ -138,7 +149,7 @@ class Lane_Detection(QtCore.QObject):
         height, width, layers = self.clips[0].shape
         size = (width,height)
 
-        out = cv2.VideoWriter(os.path.join(self.output_path, 'video.avi'),cv2.VideoWriter_fourcc(*'DIVX'), self.fps, size)
+        out = cv2.VideoWriter(os.path.join(self.output_video_path, 'video.avi'),cv2.VideoWriter_fourcc(*'DIVX'), self.fps, size)
 
         for clip in self.clips:
             # writing to a image array
