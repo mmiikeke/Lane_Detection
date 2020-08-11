@@ -25,7 +25,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QFont, QIcon, QPixmap
 from PySide2.QtWidgets import QVBoxLayout, QGridLayout, QWidget
 
-from user_interface.page_widget import page1, page2, page3
+from user_interface.page_widget import page1, page2, page3, page4
 from detection_program.demo_class import Lane_Detection
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
@@ -67,7 +67,8 @@ class MainWindow(QtCore.QObject):
 
         self._pages['page1'] = page1()
         self._pages['page2'] = page2()
-        self._pages['page3'] = page3()
+        #self._pages['page3'] = page3()
+        self._pages['page4'] = page4()
 
         # Add to frame
         g_layout = QGridLayout()
@@ -80,8 +81,12 @@ class MainWindow(QtCore.QObject):
 
         self._window.frame_content.setLayout(g_layout)
 
+        #self._pages['page2'].widget.setGeometry(QtCore.QRect(1920, 0, 1000, 435))
         self._pages['page2'].widget.stackUnder(self._pages['page1'].widget)
         self._pages['page2'].widget.setDisabled(True)
+        #self._pages['page4'].widget.setGeometry(QtCore.QRect(1920, 0, 1000, 435))
+        self._pages['page4'].widget.stackUnder(self._pages['page2'].widget)
+        self._pages['page4'].widget.setDisabled(True)
 
         # Add to stacked Widget
         #for index, name in enumerate(self._pages):
@@ -110,7 +115,7 @@ class MainWindow(QtCore.QObject):
     def next_page(self, a, b):
         a.setDisabled(True)
         a.stackUnder(b)
-        b.setDisabled(False)
+        b.setGeometry(a.geometry().translated(a.geometry().width() * 1.1, 0))
 
         print(a.geometry())
         #print(a.parentWidget().layout())
@@ -138,6 +143,13 @@ class MainWindow(QtCore.QObject):
         self.group.addAnimation(self.anim_a)
         self.group.addAnimation(self.anim_b)
         self.group.start()
+
+        QtCore.QTimer.singleShot(2000, lambda: self.next_page_callback(a, b))
+    
+    @QtCore.Slot()
+    def next_page_callback(self, a, b):
+        b.setDisabled(False)
+        a.hide()
     
     @QtCore.Slot()
     def detect(self, widget):
@@ -155,6 +167,10 @@ class MainWindow(QtCore.QObject):
         self.thread = threading.Thread(target = demo.run)
         self.thread.do_run = True
         self.thread.start()
+
+    @QtCore.Slot()
+    def detect_callback(self):
+        self.next_page(self._pages['page2'].widget, self._pages['page4'].widget)
 
     @QtCore.Slot(str)
     def update_progressbar(self, value):
