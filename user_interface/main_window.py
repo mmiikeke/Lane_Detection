@@ -67,8 +67,8 @@ class MainWindow(QtCore.QObject):
 
         self._pages['page1'] = page1()
         self._pages['page2'] = page2()
-        #self._pages['page3'] = page3()
-        self._pages['page4'] = page4()
+        self._pages['page3'] = page3()
+        #self._pages['page4'] = page4()
 
         # Add to frame
         g_layout = QGridLayout()
@@ -85,8 +85,8 @@ class MainWindow(QtCore.QObject):
         self._pages['page2'].widget.stackUnder(self._pages['page1'].widget)
         self._pages['page2'].widget.setDisabled(True)
         #self._pages['page4'].widget.setGeometry(QtCore.QRect(1920, 0, 1000, 435))
-        self._pages['page4'].widget.stackUnder(self._pages['page2'].widget)
-        self._pages['page4'].widget.setDisabled(True)
+        #self._pages['page4'].widget.stackUnder(self._pages['page2'].widget)
+        #self._pages['page4'].widget.setDisabled(True)
 
         # Add to stacked Widget
         #for index, name in enumerate(self._pages):

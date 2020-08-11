@@ -138,24 +138,32 @@ class page3(QObject):
         paths = os.listdir(TEMP)
         length = len(paths)
 
-        g_layout = QtWidgets.QGridLayout()
-        g_layout.setSpacing(0)
+        g_layout = QtWidgets.QGridLayout(self._widget)
+        g_layout.setSpacing(10)
         g_layout.setMargin(0)
+
+        total_height = 0
 
         #Set grid content
         for num, path in enumerate(paths):
-            label = QtWidgets.QLabel(self._widget)
-            pixmap = QtGui.QPixmap(os.path.join(TEMP, path))
-            label.setPixmap(pixmap)
-            g_layout.addWidget(label, num, 0, 1, 1)
+            label = Label(self._widget)
+            label.setStyleSheet("QLabel { background-color : red; }")
+            g_layout.addWidget(label, int(num / 2), num % 2, 1, 1)
 
-            #vlayout = QtWidgets.QVBoxLayout()
-            #v_layout.addWidget(label)
-            #item = self.create_cell(col_data)
-            #item.setToolTip('row{},Col{}'.format(row_num, col_num))
-            
+            pixmap = QtGui.QPixmap(os.path.join(TEMP, path))
+            #scaled = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
+            label.setPixmap(pixmap, QtCore.QSize(900, 236))
+            print(f'size = {self._widget.size()}')
+            #sp = label.sizePolicy()
+            #sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Maximum)
+            #label.setSizePolicy(sp)
+            #label.setToolTip('row{},Col{}'.format(num, 0))
+            g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
+            total_height += (236/2+10)
 
         self._widget.frame_grid.setLayout(g_layout)
+        print(f'total height = {total_height}')
+        self._widget.frame_grid.setMinimumHeight(total_height)
 
 
     def setup_table(self):
