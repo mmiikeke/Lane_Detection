@@ -13,6 +13,7 @@ class Lane_Detection(QtCore.QObject):
 
     update_progressbar = Signal(float)
     detect_callback = Signal(list)
+    update_output_imgs = Signal(str, int, int)
 
     def __init__(self, input_path, output_path, is_inputvideo, is_outputvideo, is_outputclips, widget):
         super().__init__()
@@ -65,14 +66,14 @@ class Lane_Detection(QtCore.QObject):
             length = len(images)
 
             i = 0
-            for path in images:
+            for num, path in enumerate(images):
                 if not getattr(t, "do_run", True):
                     break
 
                 frame = cv2.imread(str(Path(self.input_path).joinpath(path)))
                 self.widget.label_info.setText(f'Detect lane...\t{path}\n')
                 self.update_progressbar.emit(i*100/length)
-                self.detect(frame, path)
+                self.detect(frame, path, num)
                 i+=1
         
         # Generate video
@@ -82,14 +83,20 @@ class Lane_Detection(QtCore.QObject):
         
         self.detect_callback.emit(self.subpaths)
 
-    def detect(self, image, name):
-        image = cv2.resize(image, (512,256)) 
+    def detect(self, image, name, num):
+        #(h, w) = image.shape[:2]
+        #h = int(h/3)
+        #w = int(w/6)
+        #image = image[h:3*h, w:5*w]
+        image = cv2.resize(image, (512,256))
         image = np.rollaxis(image, axis=2, start=0)/255.0
         _, _, result_image = self.gen_test(np.array([image]))
 
         image_path = os.path.join(self.output_clips_path, name)
         cv2.imwrite(str(image_path), result_image[0])
         self.subpaths.append(name)
+
+        self.update_output_imgs.emit(image_path, num, 0)
         
         if self.is_outputvideo:
             self.clips.append(result_image[0])

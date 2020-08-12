@@ -28,7 +28,7 @@ from PySide2 import QtGui
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
 
 PAGE1 = 'user_interface/form/ui_page1.ui'
-PAGE2 = 'user_interface/form/ui_page2.ui'
+PAGE2 = 'user_interface/form/ui_page2_2.ui'
 PAGE3 = 'user_interface/form/ui_page3.ui'
 PAGE4 = 'user_interface/form/ui_page4.ui'
 
@@ -84,11 +84,18 @@ class page2(QObject):
         self._widget.progressBar.hide()
 
         self.set_buttons()
+        #self.set_grid()
 
     def set_buttons(self):
         """Setup buttons"""
         self._widget.input_button.clicked.connect(self.select_input)
         self._widget.output_button.clicked.connect(self.select_output)
+
+    def set_grid(self):
+        g_layout = QtWidgets.QGridLayout(self._widget)
+        g_layout.setSpacing(10)
+        g_layout.setMargin(0)
+        self._widget.frame_grid.setLayout(g_layout)
 
     @QtCore.Slot()
     def select_input(self):

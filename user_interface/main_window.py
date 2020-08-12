@@ -20,12 +20,14 @@ import os, threading
 from collections import OrderedDict
 
 from PySide2 import QtCore
+from PySide2 import QtWidgets
 from PySide2.QtCore import Qt, QFile, QPropertyAnimation, QParallelAnimationGroup
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtGui import QFont, QIcon, QPixmap
 from PySide2.QtWidgets import QVBoxLayout, QGridLayout, QWidget
+from PySide2 import QtGui
 
-from user_interface.page_widget import page1, page2, page3, page4
+from user_interface.page_widget import page1, page2, page3, page4, Label
 from detection_program.demo_class import Lane_Detection
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
@@ -167,6 +169,7 @@ class MainWindow(QtCore.QObject):
         demo = Lane_Detection(self.input_path, self.output_path, is_input_video, is_output_video, is_output_clips, widget)
         demo.update_progressbar.connect(self.update_progressbar)
         demo.detect_callback.connect(self.detect_callback)
+        demo.update_output_imgs.connect(self.update_output_imgs)
         #demo.run()
         widget.progressBar.show()
         self.thread = threading.Thread(target = demo.run)
@@ -176,13 +179,34 @@ class MainWindow(QtCore.QObject):
     @QtCore.Slot()
     def detect_callback(self, subpaths):
         self.subpaths = subpaths
-        self._pages['page3'].widget.show()
-        self._pages['page3'].setup_grid(os.path.join(self.output_path, 'clips'), self.subpaths)
-        self.next_page(self._pages['page2'].widget, self._pages['page3'].widget)
+        #self._pages['page3'].widget.show()
+        #self._pages['page3'].setup_grid(os.path.join(self.output_path, 'clips'), self.subpaths)
+        #self.next_page(self._pages['page2'].widget, self._pages['page3'].widget)
 
     @QtCore.Slot(str)
     def update_progressbar(self, value):
         self._pages['page2'].widget.progressBar.setValue(value)
+
+    @QtCore.Slot(str)
+    def update_output_imgs(self, path, row, column):
+        if row == 0:
+            self.page2g_layout = QtWidgets.QGridLayout(self._pages['page2'].widget.frame_grid)
+            self.page2g_layout.setSpacing(10)
+            self.page2g_layout.setMargin(0)
+            #self._pages['page2'].widget.frame_grid.setLayout(self.page2g_layout)
+        self.page2label = Label(self._pages['page2'].widget)
+        self.page2g_layout.addWidget(self.page2label, row, 0, 1, 1)
+        self.page2g_layout.setAlignment(self.page2label, QtCore.Qt.AlignCenter)
+
+        total_height = self._pages['page2'].widget.frame_grid.minimumHeight() + 210
+
+        pixmap = QtGui.QPixmap(path)
+        self.page2label.setPixmap(pixmap, QtCore.QSize(900, 200))
+        self.page2label.setToolTip(f'image: s_path')
+
+        
+        print(f'total height = {total_height}')
+        self._pages['page2'].widget.frame_grid.setMinimumHeight(total_height)
     """
     @QtCore.Slot()
     def next_page_stacked(self, a, b):
