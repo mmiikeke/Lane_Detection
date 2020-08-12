@@ -124,7 +124,7 @@
           <string notr="true">color: rgb(100, 100, 100);</string>
          </property>
          <property name="text">
-          <string>Registered by: Mike Chen</string>
+          <string>&lt;strong&gt;Created by&lt;/strong&gt; : Mike Chen</string>
          </property>
         </widget>
        </item>
@@ -151,7 +151,7 @@
           <string notr="true">color: rgb(100, 100, 100);</string>
          </property>
          <property name="text">
-          <string>v.alpha.0.0</string>
+          <string>v.1.0.0</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

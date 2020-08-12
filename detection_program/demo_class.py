@@ -54,7 +54,7 @@ class Lane_Detection(QtCore.QObject):
                 ret, frame = vid.read()
                 if ret == False:
                     break
-                self.detect(frame, str(i).zfill(5)+'.jpg')
+                self.detect(frame, str(i).zfill(5)+'.jpg', i)
                 i+=1
  
             vid.release()

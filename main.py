@@ -18,7 +18,7 @@
 import os, sys
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), 'detection_program'))
 
-from PySide2 import QtWidgets
+from PySide2 import QtWidgets, QtCore, QtGui
 from user_interface.main_window import MainWindow
 
 class MyWidget(QtWidgets.QWidget):
@@ -30,7 +30,12 @@ class MyWidget(QtWidgets.QWidget):
             event.accept()
         else:
             event.ignore()
-    
+
+    def __init__(self, parent=None):
+        super(MyWidget, self).__init__(parent)
+        self.setWindowTitle('Lane Detection Imporvement based on PINet')
+        self.setWindowIcon(QtGui.QIcon('user_interface/media/icon.png'))
+
     def set_child(self, child):
         v_layout = QtWidgets.QVBoxLayout()
         v_layout.setSpacing(0)

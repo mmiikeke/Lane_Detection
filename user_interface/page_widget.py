@@ -23,7 +23,7 @@ from PySide2 import QtCore, QtWidgets, QtGui, QtUiTools
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
 
 PAGE1 = 'user_interface/form/ui_page1.ui'
-PAGE2 = 'user_interface/form/ui_page2_2.ui'
+PAGE2 = 'user_interface/form/ui_page2_3.ui'
 PAGE3 = 'user_interface/form/ui_page3.ui'
 
 class page1(QtCore.QObject):
@@ -76,18 +76,18 @@ class page2(QtCore.QObject):
         self._widget.progressBar.hide()
 
         self.set_buttons()
-        self.set_grid()
+        self.set_label_img()
 
     def set_buttons(self):
         """Setup buttons"""
         self._widget.input_button.clicked.connect(self.select_input)
         self._widget.output_button.clicked.connect(self.select_output)
 
-    def set_grid(self):
-        g_layout = QtWidgets.QGridLayout(self._widget.frame_grid)
-        g_layout.setSpacing(10)
-        g_layout.setMargin(0)
-        self._widget.frame_grid.setLayout(g_layout)
+    def set_label_img(self):
+        layout = QtWidgets.QVBoxLayout(self._widget.frame_output_imgs)
+        self.label_img = Label(self._widget.frame_output_imgs)
+        layout.addWidget(self.label_img)
+        layout.setAlignment(self.label_img, QtCore.Qt.AlignCenter)
 
     @QtCore.Slot(int)
     def update_progressbar(self, value):
@@ -95,18 +95,9 @@ class page2(QtCore.QObject):
 
     @QtCore.Slot(str)
     def update_output_imgs(self, path, row, column):
-        label = Label(self._widget.frame_grid)
-        self._widget.frame_grid.layout().addWidget(label, row, 0, 1, 1)
-        self._widget.frame_grid.layout().setAlignment(label, QtCore.Qt.AlignCenter)
-
         pixmap = QtGui.QPixmap(path)
-        label.setPixmap(pixmap, QtCore.QSize(900, 200))
-        label.setToolTip(f'image: s_path')
-
-        min_height = self._widget.frame_grid.minimumHeight() + 210
-        self._widget.frame_grid.setMinimumHeight(min_height)
-
-        self._widget.scrollArea.verticalScrollBar.setSliderPosition(self._widget.scrollArea.verticalScrollBar.maximum());
+        self.label_img.setPixmap(pixmap, QtCore.QSize(900, 200))
+        self.label_img.setToolTip(f'image: {path}')
 
     @QtCore.Slot()
     def select_input(self):
@@ -149,7 +140,7 @@ class page3(QtCore.QObject):
     def set_buttons(self):
         """Setup buttons"""
 
-    def setup_grid(self, p_path, s_path):
+    def setup_grid(self, p_path, s_path, delete_clips = False):
 
         # Read images
         g_layout = QtWidgets.QGridLayout(self._widget.frame_grid)
@@ -164,11 +155,15 @@ class page3(QtCore.QObject):
             g_layout.addWidget(label, int(num / 2), num % 2, 1, 1)
             g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
 
-            pixmap = QtGui.QPixmap(os.path.join(p_path, path))
+            fullpath = os.path.join(p_path, path)
+            pixmap = QtGui.QPixmap(fullpath)
             label.setPixmap(pixmap, QtCore.QSize(900, 236))
-            label.setToolTip(f'image: s_path')
+            label.setToolTip(f'image: {path}')
             
             total_height += (236/2+10)
+
+            if delete_clips and os.path.isfile(fullpath):
+                os.remove(fullpath)
 
         self._widget.frame_grid.setMinimumHeight(total_height)
 
