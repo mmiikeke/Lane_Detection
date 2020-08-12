@@ -18,23 +18,15 @@
 """
 
 import os, cv2, math
-from PySide2 import QtCore
-from PySide2 import QtWidgets
-from PySide2.QtCore import Qt, QFile, QObject, QPropertyAnimation
-from PySide2.QtUiTools import QUiLoader
-from PySide2 import QtGui
-
+from PySide2 import QtCore, QtWidgets, QtGui, QtUiTools
 
 __copyright__ = 'Copyright © 2020 mmiikeke - All Right Reserved.'
 
 PAGE1 = 'user_interface/form/ui_page1.ui'
 PAGE2 = 'user_interface/form/ui_page2_2.ui'
 PAGE3 = 'user_interface/form/ui_page3.ui'
-PAGE4 = 'user_interface/form/ui_page4.ui'
 
-TEMP = 'D:/mike/github/Lane_Detection/data/dd'
-
-class page1(QObject):
+class page1(QtCore.QObject):
     def __init__(self, parent=None):
 
         super(page1, self).__init__(parent)
@@ -49,9 +41,9 @@ class page1(QObject):
     
     def setup_ui(self):
         """Initialize user interface of widget."""
-        loader = QUiLoader()
-        file = QFile(PAGE1)
-        file.open(QFile.ReadOnly)
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(PAGE1)
+        file.open(QtCore.QFile.ReadOnly)
         self._widget = loader.load(file)
         file.close()
 
@@ -60,7 +52,7 @@ class page1(QObject):
     def set_buttons(self):
         """Setup buttons"""
 
-class page2(QObject):
+class page2(QtCore.QObject):
     def __init__(self, parent=None):
 
         super(page2, self).__init__(parent)
@@ -75,16 +67,16 @@ class page2(QObject):
     
     def setup_ui(self):
         """Initialize user interface of widget."""
-        loader = QUiLoader()
-        file = QFile(PAGE2)
-        file.open(QFile.ReadOnly)
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(PAGE2)
+        file.open(QtCore.QFile.ReadOnly)
         self._widget = loader.load(file)
         file.close()
 
         self._widget.progressBar.hide()
 
         self.set_buttons()
-        #self.set_grid()
+        self.set_grid()
 
     def set_buttons(self):
         """Setup buttons"""
@@ -92,10 +84,29 @@ class page2(QObject):
         self._widget.output_button.clicked.connect(self.select_output)
 
     def set_grid(self):
-        g_layout = QtWidgets.QGridLayout(self._widget)
+        g_layout = QtWidgets.QGridLayout(self._widget.frame_grid)
         g_layout.setSpacing(10)
         g_layout.setMargin(0)
         self._widget.frame_grid.setLayout(g_layout)
+
+    @QtCore.Slot(int)
+    def update_progressbar(self, value):
+        self._widget.progressBar.setValue(value)
+
+    @QtCore.Slot(str)
+    def update_output_imgs(self, path, row, column):
+        label = Label(self._widget.frame_grid)
+        self._widget.frame_grid.layout().addWidget(label, row, 0, 1, 1)
+        self._widget.frame_grid.layout().setAlignment(label, QtCore.Qt.AlignCenter)
+
+        pixmap = QtGui.QPixmap(path)
+        label.setPixmap(pixmap, QtCore.QSize(900, 200))
+        label.setToolTip(f'image: s_path')
+
+        min_height = self._widget.frame_grid.minimumHeight() + 210
+        self._widget.frame_grid.setMinimumHeight(min_height)
+
+        self._widget.scrollArea.verticalScrollBar.setSliderPosition(self._widget.scrollArea.verticalScrollBar.maximum());
 
     @QtCore.Slot()
     def select_input(self):
@@ -112,7 +123,7 @@ class page2(QObject):
 
         self._widget.lineEdit_output.setText(file)
 
-class page3(QObject):
+class page3(QtCore.QObject):
     def __init__(self, parent=None):
 
         super(page3, self).__init__(parent)
@@ -127,14 +138,13 @@ class page3(QObject):
     
     def setup_ui(self):
         """Initialize user interface of widget."""
-        loader = QUiLoader()
-        file = QFile(PAGE3)
-        file.open(QFile.ReadOnly)
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(PAGE3)
+        file.open(QtCore.QFile.ReadOnly)
         self._widget = loader.load(file)
         file.close()
 
         self.set_buttons()
-        #self.setup_grid()
 
     def set_buttons(self):
         """Setup buttons"""
@@ -142,9 +152,7 @@ class page3(QObject):
     def setup_grid(self, p_path, s_path):
 
         # Read images
-        length = len(s_path)
-
-        g_layout = QtWidgets.QGridLayout(self._widget)
+        g_layout = QtWidgets.QGridLayout(self._widget.frame_grid)
         g_layout.setSpacing(10)
         g_layout.setMargin(0)
 
@@ -152,110 +160,17 @@ class page3(QObject):
 
         #Set grid content
         for num, path in enumerate(s_path):
-            label = Label(self._widget)
-            #label.setStyleSheet("QLabel { background-color : red; }")
+            label = Label(self._widget.frame_grid)
             g_layout.addWidget(label, int(num / 2), num % 2, 1, 1)
+            g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
 
             pixmap = QtGui.QPixmap(os.path.join(p_path, path))
-            #scaled = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
             label.setPixmap(pixmap, QtCore.QSize(900, 236))
-            #print(f'size = {self._widget.size()}')
-            #sp = label.sizePolicy()
-            #sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Maximum)
-            #label.setSizePolicy(sp)
             label.setToolTip(f'image: s_path')
-            g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
+            
             total_height += (236/2+10)
 
-        self._widget.frame_grid.setLayout(g_layout)
-        print(f'total height = {total_height}')
         self._widget.frame_grid.setMinimumHeight(total_height)
-
-
-    def setup_table(self):
-        # Read images
-        paths = os.listdir(TEMP)
-        length = len(paths)
-
-        # Setup TableWidget
-        table = self._widget.table_widget
-        #table.verticalHeader().setDefaultSectionSize(18)
-        #table.verticalHeader().setDefaultAlignment(Qt.AlignCenter)
-
-        #Let whole content fit in the window 
-        #table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        
-        table.verticalScrollBar().setVisible(True)
-        table.horizontalScrollBar().setVisible(False)
-
-        #Set row & column count
-        table.setColumnCount(5)
-        table.setRowCount(math.ceil(length / 5))
-
-        #Set table content
-        for num, path in enumerate(paths):
-            label = QtWidgets.QLabel(self._widget)
-            label.setPixmap(QtGui.QPixmap(os.path.join(TEMP, path)))
-            #vlayout = QtWidgets.QVBoxLayout()
-            #v_layout.addWidget(label)
-            #item = self.create_cell(col_data)
-            #item.setToolTip('row{},Col{}'.format(row_num, col_num))
-            table.setItem(int(num / 5), num % 5, label)
-
-class page4(QObject):
-    def __init__(self, parent=None):
-
-        super(page4, self).__init__(parent)
-
-        self._widget = None
-
-        self.setup_ui()
-        
-    @property
-    def widget(self):
-        return self._widget
-    
-    def setup_ui(self):
-        """Initialize user interface of widget."""
-        loader = QUiLoader()
-        file = QFile(PAGE4)
-        file.open(QFile.ReadOnly)
-        self._widget = loader.load(file)
-        file.close()
-
-        self.set_buttons()
-
-    def set_buttons(self):
-        """Setup buttons"""
-        path = os.path.join(TEMP, '00000.jpg')
-
-        g_layout = QtWidgets.QGridLayout(self._widget)
-        g_layout.setSpacing(0)
-        g_layout.setMargin(0)
-
-        #Set grid content
-        label = Label(self._widget)
-        label.setStyleSheet("QLabel { background-color : red; }")
-        g_layout.addWidget(label, 0, 0, 1, 1)
-
-        pixmap = QtGui.QPixmap(os.path.join(TEMP, path))
-        #scaled = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
-        label.setPixmap(pixmap, self._widget.size())
-        print(f'size = {self._widget.size()}')
-        sp = label.sizePolicy()
-        sp.setHorizontalPolicy(QtWidgets.QSizePolicy.Maximum)
-        label.setSizePolicy(sp)
-        #g_layout.setAlignment(label, QtCore.Qt.AlignCenter)
-        #g_layout.addWidget(label, 0, 0, 1, 1)
-
-        #vlayout = QtWidgets.QVBoxLayout()
-        #v_layout.addWidget(label)
-        #item = self.create_cell(col_data)
-        #item.setToolTip('row{},Col{}'.format(row_num, col_num))
-        #self._widget.btn_start.clicked.connect(lambda: label.setPixmap(pixmap, self._widget.frame_2.size()))         
-
-        self._widget.frame_2.setLayout(g_layout)
 
 class Label(QtWidgets.QLabel):
     """

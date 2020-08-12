@@ -84,10 +84,6 @@ class Lane_Detection(QtCore.QObject):
         self.detect_callback.emit(self.subpaths)
 
     def detect(self, image, name, num):
-        #(h, w) = image.shape[:2]
-        #h = int(h/3)
-        #w = int(w/6)
-        #image = image[h:3*h, w:5*w]
         image = cv2.resize(image, (512,256))
         image = np.rollaxis(image, axis=2, start=0)/255.0
         _, _, result_image = self.gen_test(np.array([image]))
