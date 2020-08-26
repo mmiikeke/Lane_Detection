@@ -148,7 +148,7 @@ class Lane_Detection(QtCore.QObject):
             in_x, in_y = eliminate_out(in_x, in_y, confidence, copy.deepcopy(image))
             in_x, in_y = sort_along_y(in_x, in_y)
             in_x, in_y = eliminate_fewer_points(in_x, in_y)
-            in_x, in_y = sort_lane(in_x, in_y, 100)
+            in_x, in_y = sort_lane(in_x, in_y, 200)
             for i in range(len(in_x)):
                 print(f'in_x[{i}] length = {len(in_x[i])}')
             
