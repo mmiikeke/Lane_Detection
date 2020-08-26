@@ -4,7 +4,7 @@ import threading
 from detection_program.options import opt
 import numpy as np
 from torch.autograd import Variable
-import copy
+import copy, time
 from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points
 from PySide2.QtCore import Signal
 from PySide2 import QtCore
@@ -48,8 +48,17 @@ class Lane_Detection(QtCore.QObject):
             #self.update_progressbar.emit(60) #Succeed
             #self.widget.progressBar.setValue(60) #Failed
             i = 0
+            start_time = 0
             while(vid.isOpened() and getattr(t, "do_run", True)):
-                self.widget.label_info.setText(f'Detect lane...\t{i}\n')
+                
+                #spf = 0 if start_time == 0 else 1/(time.time() - start_time)
+                if start_time == 0:
+                    spf = 0
+                else:
+                    spf = 1/(time.time() - start_time)
+                start_time = time.time()
+
+                self.widget.label_info.setText(f'Detect lane: \t{str(i).zfill(5)}.jpg\nExecution time of the previous frame: \t{spf:.2f} second')
                 self.update_progressbar.emit(i*100/length)
                 ret, frame = vid.read()
                 if ret == False:
@@ -71,7 +80,7 @@ class Lane_Detection(QtCore.QObject):
                     break
 
                 frame = cv2.imread(str(Path(self.input_path).joinpath(path)))
-                self.widget.label_info.setText(f'Detect lane...\t{path}\n')
+                self.widget.label_info.setText(f'Detect lane: \t{path}\n')
                 self.update_progressbar.emit(i*100/length)
                 self.detect(frame, path, num)
                 i+=1

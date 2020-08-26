@@ -33,7 +33,7 @@ class MyWidget(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(MyWidget, self).__init__(parent)
-        self.setWindowTitle('Lane Detection Imporvement based on PINet')
+        self.setWindowTitle('Lane Detection based on PINet')
         self.setWindowIcon(QtGui.QIcon('user_interface/media/icon.png'))
 
     def set_child(self, child):
