@@ -258,9 +258,28 @@ def sort_lane(x, y, sort_at):
         i = np.array(i)
         j = np.array(j)
 
-        index = min(range(len(j)), key=lambda k: abs(j[k]-sort_at))
-        
-        order.append(i[index])
+        #index = min(range(len(j)), key=lambda k: abs(j[k]-sort_at))
+        l = 10000
+        s = 10000
+        l_i = -1
+        s_i = -1
+        for k in range(len(j)):
+            if (j[k] > sort_at) and ((j[k] - sort_at) < l):
+                l = j[k] - sort_at
+                l_i = k
+            elif (j[k] < sort_at) and ((sort_at - j[k]) < s):
+                s = sort_at - j[k]
+                s_i = k
+        if l_i == -1 or s_i == -1:
+            a = i[0]
+            b = i[-1]
+            c = j[0]
+            d = j[-1]
+            order.append(a + (b - a) * (200 - c) / (d - c))
+        else:
+            a = i[s_i]
+            b = i[l_i]
+            order.append((a * l + b * s)/(l + s))
 
     order = np.argsort(order, axis=0)
 
