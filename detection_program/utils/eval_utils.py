@@ -249,7 +249,26 @@ def draw_points(x, y, image):
 
     return image
 
+def sort_lane(x, y, sort_at):
+    out_x = []
+    out_y = []
+    order = []
 
+    for i, j in zip(x, y):
+        i = np.array(i)
+        j = np.array(j)
+
+        index = min(range(len(j)), key=lambda k: abs(j[k]-sort_at))
+        
+        order.append(i[index])
+
+    order = np.argsort(order, axis=0)
+
+    for i in order:
+        out_x.append(x[i])
+        out_y.append(y[i])
+    
+    return out_x, out_y 
 
 
         

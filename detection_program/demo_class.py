@@ -5,7 +5,7 @@ from detection_program.options import opt
 import numpy as np
 from torch.autograd import Variable
 import copy, time
-from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points
+from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points, sort_lane
 from PySide2.QtCore import Signal
 from PySide2 import QtCore
 
@@ -148,6 +148,12 @@ class Lane_Detection(QtCore.QObject):
             in_x, in_y = eliminate_out(in_x, in_y, confidence, copy.deepcopy(image))
             in_x, in_y = sort_along_y(in_x, in_y)
             in_x, in_y = eliminate_fewer_points(in_x, in_y)
+            in_x, in_y = sort_lane(in_x, in_y, 100)
+            for i in range(len(in_x)):
+                print(f'in_x[{i}] length = {len(in_x[i])}')
+            
+            #print(f'shape = {xxx.shape}')
+            #print(f'xshape = {len(in_x)}, {len(in_x[0])}, yshape = {len(in_y)}, {len(in_y[0])}\n{in_y[0][int(len(in_y[0])/2)]}')
 
             result_image = draw_points(in_x, in_y, copy.deepcopy(image))
 
