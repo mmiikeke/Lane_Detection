@@ -96,8 +96,8 @@ class page2(QtCore.QObject):
     @QtCore.Slot(str)
     def update_output_imgs(self, path, row, column):
         pixmap = QtGui.QPixmap(path)
-        self.label_img.setPixmap(pixmap, QtCore.QSize(900, 200))
-        self.label_img.setToolTip(f'image: {path}')
+        self.label_img.setPixmap(pixmap, QtCore.QSize(900, 250))
+        self.label_img.setToolTip(f'image: {os.path.basename(path)}')
 
     @QtCore.Slot()
     def select_input(self):
