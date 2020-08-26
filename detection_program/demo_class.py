@@ -28,6 +28,7 @@ class Lane_Detection(QtCore.QObject):
         self.clips = list()
         self.subpaths = list()
         self.fps = 30
+        self.num_lanes = 0
 
         if not os.path.isdir(self.output_clips_path):
             os.makedirs(self.output_clips_path)
@@ -148,12 +149,26 @@ class Lane_Detection(QtCore.QObject):
             in_x, in_y = eliminate_out(in_x, in_y, confidence, copy.deepcopy(image))
             in_x, in_y = sort_along_y(in_x, in_y)
             in_x, in_y = eliminate_fewer_points(in_x, in_y)
-            in_x, in_y = sort_lane(in_x, in_y, 200)
-            for i in range(len(in_x)):
-                print(f'in_x[{i}] length = {len(in_x[i])}')
+            in_x, in_y, location = sort_lane(in_x, in_y, 200)
+
+            #for i in range(len(in_x)):
+            #    print(f'in_x[{i}] length = {len(in_x[i])}')
             
-            #print(f'shape = {xxx.shape}')
-            #print(f'xshape = {len(in_x)}, {len(in_x[0])}, yshape = {len(in_y)}, {len(in_y[0])}\n{in_y[0][int(len(in_y[0])/2)]}')
+            if self.num_lanes == 0:
+                self.num_lanes = len(in_x)
+            else:
+                self.num_lanes = self.num_lanes*0.8 + len(in_x)*0.2
+
+            # Remove lane
+            while (len(in_x) - self.num_lanes) > 0.5:
+                min = len(in_x[0])
+                flag = 0
+                for i in range(len(in_x)-1):
+                    if len(in_x[i+1]) < min:
+                        min = len(in_x[i+1])
+                        flag = i+1
+                in_x.remove(in_x[flag])
+                in_y.remove(in_y[flag])
 
             result_image = draw_points(in_x, in_y, copy.deepcopy(image))
 

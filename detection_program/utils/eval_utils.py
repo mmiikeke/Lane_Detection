@@ -281,13 +281,14 @@ def sort_lane(x, y, sort_at):
             b = i[l_i]
             order.append((a * l + b * s)/(l + s))
 
-    order = np.argsort(order, axis=0)
+    iorder = np.argsort(order, axis=0)
+    order.sort()
 
-    for i in order:
+    for i in iorder:
         out_x.append(x[i])
         out_y.append(y[i])
     
-    return out_x, out_y 
+    return out_x, out_y, order 
 
 
         
