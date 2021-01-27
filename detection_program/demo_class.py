@@ -8,6 +8,7 @@ import copy, time
 from utils.eval_utils import generate_result, eliminate_fewer_points, sort_along_y, eliminate_out, draw_points, sort_lane
 from PySide2.QtCore import Signal
 from PySide2 import QtCore
+import queue
 
 class Lane_Detection(QtCore.QObject):
 
@@ -25,6 +26,7 @@ class Lane_Detection(QtCore.QObject):
         self.is_outputvideo = is_outputvideo
         self.is_outputclips = is_outputclips
         self.model = torch.load("detection_program/model/model.pth", map_location='cuda:'+str(opt.cuda_devices))
+        torch.save(self.model, "detection_program/model/model2.pth")
         self.clips = list()
         self.subpaths = list()
         self.fps = 30
@@ -49,22 +51,30 @@ class Lane_Detection(QtCore.QObject):
             #self.update_progressbar.emit(60) #Succeed
             #self.widget.progressBar.setValue(60) #Failed
             i = 0
-            start_time = 0
+            q = queue.Queue(maxsize=5)
+            frame_time = 0.0
+            start_time = time.time()
             while(vid.isOpened() and getattr(t, "do_run", True)):
-                
-                #spf = 0 if start_time == 0 else 1/(time.time() - start_time)
-                if start_time == 0:
-                    spf = 0
-                else:
-                    spf = 1/(time.time() - start_time)
-                start_time = time.time()
-
-                self.widget.label_info.setText(f'Detect lane: \t{str(i).zfill(5)}.jpg\nExecution time of the previous frame: \t{spf:.2f} second')
                 self.update_progressbar.emit(i*100/length)
+
+                # Detect
                 ret, frame = vid.read()
                 if ret == False:
                     break
                 self.detect(frame, str(i).zfill(5)+'.jpg', i)
+
+                # Caculate time
+                tt = time.time() - start_time
+                frame_time += tt
+                if i >= 5:
+                    frame_time = frame_time - q.get()
+                    fps = 5/frame_time
+                else:
+                    fps = i/frame_time
+                q.put(tt)
+
+                self.widget.label_info.setText(f'Detect lane: \t{str(i).zfill(5)}.jpg\nExecution time of the frame: \t{tt:.2f} second\nFrame per second: \t{fps:.2f}')
+                start_time = time.time()
                 i+=1
  
             vid.release()
